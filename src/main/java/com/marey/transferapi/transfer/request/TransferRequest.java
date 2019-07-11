@@ -17,6 +17,9 @@ import java.time.LocalDateTime;
 public class TransferRequest {
 
     @NotNull
+    private Iban senderAccount;
+
+    @NotNull
     private Iban recipientAccount;
 
     @NotNull
@@ -27,9 +30,11 @@ public class TransferRequest {
     private String recipientAddress;
 
     @Future
+    @NotNull
     private LocalDateTime sendDate;
 
     @Digits(integer = 9, fraction = 2)
+    @NotNull
     private BigDecimal amount;
 
     @Size(min = 1, max = 130)

@@ -10,7 +10,7 @@ public class User {
 
     private Long id;
 
-    private String Name;
+    private String name;
 
     private String address;
 }

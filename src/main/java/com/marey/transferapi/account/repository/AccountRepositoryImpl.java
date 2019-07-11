@@ -31,4 +31,12 @@ public class AccountRepositoryImpl implements AccountRepository {
     public void addAccount(Account account) {
         this.accounts.add(account);
     }
+
+    @Override
+    public boolean accountBelongsToUser(Iban iban, Long userId) {
+        return this.accounts.stream()
+                .anyMatch(account ->
+                     account.getOwnerId().equals(userId) && account.getIban().equals(iban)
+                );
+    }
 }

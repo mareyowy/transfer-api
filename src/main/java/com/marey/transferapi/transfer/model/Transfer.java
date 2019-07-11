@@ -21,7 +21,7 @@ public class Transfer implements Serializable {
 
     private String senderName;
 
-    private String senderAddres;
+    private String senderAddress;
 
     private Iban recipientAccount;
 

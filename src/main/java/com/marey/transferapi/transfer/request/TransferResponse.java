@@ -1,14 +1,16 @@
 package com.marey.transferapi.transfer.request;
 
 
-import com.marey.transferapi.commons.BaseResponse;
+import com.marey.transferapi.transfer.model.Transfer;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class TransferResponse extends BaseResponse {
+public class TransferResponse {
 
-    private Long transferId;
+    private Transfer transfer;
+
+    private TransferResponseStatus responseStatus;
 
 }
