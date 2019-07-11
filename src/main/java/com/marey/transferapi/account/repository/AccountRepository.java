@@ -1,9 +1,9 @@
 package com.marey.transferapi.account.repository;
 
-import com.google.inject.Singleton;
 import com.marey.transferapi.account.model.Account;
 import com.marey.transferapi.transfer.model.Iban;
 
+import javax.inject.Singleton;
 import java.util.List;
 
 @Singleton

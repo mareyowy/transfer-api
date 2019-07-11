@@ -26,7 +26,7 @@ trait UserTrait {
 
     def getUser() {
         [
-                id: 1,
+                id: 1L,
                 name: "Jan Kowalski",
                 address: "ul. Pierwsza 1"
         ] as User

@@ -6,7 +6,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -29,7 +29,7 @@ public class Transfer implements Serializable {
 
     private String recipientAddress;
 
-    private LocalDateTime sendDate;
+    private LocalDate sendDate;
 
     private BigDecimal amount;
 

@@ -14,7 +14,7 @@ import groovy.traits.AccountTrait
 import groovy.traits.UserTrait
 import spock.lang.Specification
 
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 class SaveTransferSpecification extends Specification implements UserTrait, AccountTrait {
 
@@ -25,16 +25,17 @@ class SaveTransferSpecification extends Specification implements UserTrait, Acco
     def transferService = new TransferServiceImpl(accountRepository, userRepository, transferRepository)
 
     def userId = 1L
+    def senderAccount = Iban.of("PL19249000052632432769159267")
 
     def "should save new transfer"() {
         given:
             def user = getUser() as User
             def account = getAccount() as Account
-            def senderAccount = Iban.of("PL19249000052632432769159267")
             def transferRequest = transferRequest()
 
 
         when:
+            1 * transferRepository.getTodayAmountSum(_,_) >> BigDecimal.ZERO
             1 * accountRepository.getAccount(senderAccount) >> account
             1 * accountRepository.accountBelongsToUser(_ as Iban, _ as Long) >> true
             1 * userRepository.getUser(userId) >> user
@@ -48,28 +49,27 @@ class SaveTransferSpecification extends Specification implements UserTrait, Acco
 
             savedTransfer.getAmount() == transferRequest.getAmount()
             savedTransfer.getTitle() == transferRequest.getTitle()
-            savedTransfer.getSenderAccount() == transferRequest.getSenderAccount()
+            savedTransfer.getSenderAccount() == Iban.of(transferRequest.getSenderAccount())
             savedTransfer.getSenderAddress() == user.getAddress()
             savedTransfer.getSenderName() == user.getName()
-            savedTransfer.getRecipientAccount() == transferRequest.getRecipientAccount()
+            savedTransfer.getRecipientAccount() == Iban.of( transferRequest.getRecipientAccount())
             savedTransfer.getRecipientName() == transferRequest.getRecipientName()
             savedTransfer.getRecipientAddress() == transferRequest.getRecipientAddress()
-            savedTransfer.getSendDate() == transferRequest.getSendDate()
-            savedTransfer.getBalanceAfter() == account.getAvailableFunds() - transferRequest.getAmount()
+            savedTransfer.getSendDate() == LocalDate.now()
+            savedTransfer.getBalanceAfter() == account.getAvailableFunds()
             savedTransfer.getId() == 1L
-            account.getAvailableFunds() == savedTransfer.getBalanceAfter()
     }
 
     def "negative way"() {
         given:
-            def user = getUser() as User
             def account = invalidAccount(dailyLimit, availableFunds)
             def transferRequest = transferRequest()
 
         when:
-            1 * accountRepository.getAccount(_ as Account) >> account
+            (0..1) * accountRepository.getAccount(_) >> account
             1 * accountRepository.accountBelongsToUser(_,_) >>accountBelongsToUser
-            1 * userRepository.getUser(userId) >> user
+            0 * userRepository.getUser(userId)
+            (0..1) * transferRepository.getTodayAmountSum(_,_) >> usedLimit
             0 * transferRepository.saveTransfer(_ as Transfer) >> 1L
 
         then:
@@ -77,19 +77,20 @@ class SaveTransferSpecification extends Specification implements UserTrait, Acco
             transferResponse.getResponseStatus() == transferStatus
 
         where:
-            dailyLimit  |   availableFunds  |   accountBelongsToUser    |   transferStatus
-            100.00      |   300.00          |   true                    |   TransferResponseStatus.LIMIT_EXCEEDED
-            1000.00     |   100.00          |   true                    |   TransferResponseStatus.FUNDS_NOT_AVAILABLE
-            1000.00     |   300.00          |   false                   |   TransferResponseStatus.ACCOUNT_NOT_AVAILABLE
+            dailyLimit  |   availableFunds  |   accountBelongsToUser    |   usedLimit    |  transferStatus
+            1000.00     |   300.00          |   false                   |   0            |  TransferResponseStatus.ACCOUNT_NOT_AVAILABLE
+            1000.00     |   100.00          |   true                    |   0            |  TransferResponseStatus.FUNDS_NOT_AVAILABLE
+            100.00      |   300.00          |   true                    |   0            |  TransferResponseStatus.LIMIT_EXCEEDED
+            400.00      |   300.00          |   true                    |   200          |  TransferResponseStatus.LIMIT_EXCEEDED
+
     }
 
     def transferRequest() {
         [
-                senderAccount: Iban.of("PL19249000052632432769159267"),
-                recipientAccount: Iban.of("PL58249000059226380531859730"),
+                senderAccount: "PL19249000052632432769159267",
+                recipientAccount: "PL58249000059226380531859730",
                 recipientName: "Krystyna Nowak",
                 recipientAddress: "ul.Zwyczajna 2/1",
-                sendDate: LocalDateTime.now().plusDays(1L),
                 amount: 250.00 as BigDecimal,
                 title: "Przelew zwykły",
                 userId: 1L
