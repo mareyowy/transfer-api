@@ -9,7 +9,6 @@ import com.marey.transferapi.transfer.repository.TransferRepository;
 import com.marey.transferapi.transfer.request.TransferRequest;
 import com.marey.transferapi.transfer.request.TransferResponse;
 import com.marey.transferapi.transfer.request.TransferResponseStatus;
-import com.marey.transferapi.user.model.User;
 import com.marey.transferapi.user.repository.UserRepository;
 import lombok.NoArgsConstructor;
 
@@ -36,13 +35,13 @@ public class TransferServiceImpl implements TransferService {
 
     @Override
     public TransferResponse saveTransfer(TransferRequest request) {
-        Account account = accountRepository.getAccount(Iban.of(request.getSenderAccount()));
+        var account = accountRepository.getAccount(Iban.of(request.getSenderAccount()));
 
         TransferResponseStatus status = validateTransfer(request, account);
         if(status.equals(TransferResponseStatus.OK)) {
-            User user = userRepository.getUser(request.getUserId());
-            Transfer transfer = TransferMapper.mapTransfer(request, user, account);
-            Long transferId = transferRepository.saveTransfer(transfer);
+            var user = userRepository.getUser(request.getUserId());
+            var transfer = TransferMapper.mapTransfer(request, user, account);
+            var transferId = transferRepository.saveTransfer(transfer);
 
             transfer.setId(transferId);
             account.setAvailableFunds(account.getAvailableFunds().subtract(transfer.getAmount()));
@@ -82,7 +81,7 @@ public class TransferServiceImpl implements TransferService {
     }
 
     private boolean checkIfLimitExceeded(BigDecimal amount, Account account) {
-        BigDecimal usedLimit = transferRepository.getTodayAmountSum(account.getIban(), LocalDate.now());
+        var usedLimit = transferRepository.getTodayAmountSum(account.getIban(), LocalDate.now());
 
         return usedLimit.add(amount).compareTo(account.getDailyLimit()) >= 1;
     }
